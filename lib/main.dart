@@ -1,7 +1,7 @@
 import 'package:bai1/home.dart';
 import 'package:bai1/setting.dart';
 import 'package:bai1/suppliers/supplier.dart';
-import 'package:bai1/warehouse.dart';
+import 'package:bai1/products/product.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // ignore: prefer_final_fields
   static List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    WarehouseScreen(),
+    ProductScreen(),
     SupplierScreen(),
     SettingsScreen(),
   ];

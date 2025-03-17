@@ -184,7 +184,7 @@ class _AddSupplierState extends State<AddSupplierScreen>{
                                   )
                               ),
                               onPressed: _addSupplier,
-                              child: Text('Thêm nhà cung cấp'),
+                              child: Text('Add Supplier', style: TextStyle(fontWeight: FontWeight.bold),),
                             ),
                           ),
                         );

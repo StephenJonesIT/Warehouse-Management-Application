@@ -76,6 +76,7 @@ class _EditSupplierState extends State<EditSupplierScreen>{
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
+          backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.white,
             foregroundColor: Colors.black,
@@ -126,7 +127,7 @@ class _EditSupplierState extends State<EditSupplierScreen>{
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                             prefixIcon: Icon(Icons.email),
-                            labelText: 'Email Supplier',
+                            labelText: 'Email',
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10)
                             )
@@ -196,7 +197,7 @@ class _EditSupplierState extends State<EditSupplierScreen>{
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                             prefixIcon: Icon(Icons.place),
-                            labelText: 'Address Supplier',
+                            labelText: 'Address',
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10)
                             )
@@ -218,7 +219,7 @@ class _EditSupplierState extends State<EditSupplierScreen>{
                         controller: _phoneController,
                         decoration: InputDecoration(
                             prefixIcon: Icon(Icons.phone),
-                            labelText: 'Phone Supplier',
+                            labelText: 'Phone',
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10)
                             )
@@ -250,7 +251,7 @@ class _EditSupplierState extends State<EditSupplierScreen>{
                                     )
                                 ),
                                 onPressed: _updateSupplier,
-                                child: Text('Edit supplier'),
+                                child: Text('Edit Supplier'),
                               ),
                             ),
                           ),

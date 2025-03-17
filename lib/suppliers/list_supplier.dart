@@ -17,110 +17,149 @@ class ListSupplierScreen extends StatefulWidget {
 }
 
 class _ListSupplierState extends State<ListSupplierScreen> {
-  late Future<List<Supplier>> supplierList;
   List<Supplier> cachedSupplierList = [];
+  int currentPage = 1;
+  int pageSize = 10;
+  int totalItems = 0;
+  bool isLoadingMore = false;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    supplierList = fetchSuppliers();
-    supplierList.then((list) => cachedSupplierList = list);
+    _fetchSuppliers();
+    scrollController.addListener(_scrollListener);
   }
 
-  Future<List<Supplier>> fetchSuppliers() async {
-    final response =
-        await http.get(Uri.parse("http://10.0.2.2:8810/api/suppliers"));
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (scrollController.position.pixels ==
+        scrollController.position.maxScrollExtent) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _fetchSuppliers() async {
+    setState(() {
+      if (currentPage == 1) {
+        cachedSupplierList.clear();
+      }
+      isLoadingMore = true;
+    });
+
+    final response = await http.get(Uri.parse(
+        "http://10.0.2.2:8810/api/suppliers?page=$currentPage&limit=$pageSize"));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       List<dynamic> suppliersJson = data['data'];
-      return suppliersJson.map((json) => Supplier.fromJson(json)).toList();
+      totalItems = data['filter']['total'];
+      setState(() {
+        if (currentPage == 1) {
+          cachedSupplierList =
+              suppliersJson.map((json) => Supplier.fromJson(json)).toList();
+        } else {
+          cachedSupplierList.addAll(
+              suppliersJson.map((json) => Supplier.fromJson(json)).toList());
+        }
+        isLoadingMore = false;
+      });
     } else {
-      throw Exception('Failed to load suppliers');
+      setState(() {
+        isLoadingMore = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load suppliers')),
+      );
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (!isLoadingMore && cachedSupplierList.length < totalItems) {
+      setState(() {
+        currentPage++;
+      });
+      _fetchSuppliers();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-            leading: BackButton(),
-            title: Text(
-              'Suppliers List',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
-            ),
-            centerTitle: true,
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.blue,
-            actions: [
-              IconButton(
-                  onPressed: () {
-                    showSearch(
-                        context: context,
-                        delegate:
-                            SearchSupplierDelegate(supplierList: supplierList));
-                  },
-                  icon: Icon(Icons.search)),
-              IconButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AddSupplierScreen()));
-                    if (result == true) {
-                      // Cập nhật danh sách
-                      setState(() {
-                        supplierList =
-                            fetchSuppliers(); // Hoặc cập nhật cachedSupplierList
-                        supplierList.then((list) => cachedSupplierList = list);
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.add))
-            ],
-          ),
-          body: FutureBuilder(
-              future: supplierList,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No suppliers found'));
-                } else {
-                  List<Supplier> suppliers = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: suppliers.length,
-                    itemBuilder: (context, index) {
-                      final supplier = suppliers[index];
-                      return ListTile(
-                        title: Text(supplier.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Phone: ${supplier.phone}'),
-                          ],
-                        ),
-                        leading: CircleAvatar(
-                          backgroundColor: getRandomColor(),
-                          child: Text(supplier.name[0]),
-                        ),
-                        trailing: Icon(Icons.info_outline),
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                            EditSupplierScreen(supllier: supplier)
-                          ));
-                        },
-                        onLongPress: () =>
-                            _showDeleteConfirmationDialog(context, supplier.id),
-                      );
-                    },
-                  );
+    return Scaffold(
+      appBar: AppBar(
+        leading: BackButton(),
+        title: Text(
+          'Suppliers List',
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+        ),
+        centerTitle: true,
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+              onPressed: () {
+                showSearch(
+                    context: context,
+                    delegate:
+                    SearchSupplierDelegate(supplierList: Future.value(cachedSupplierList)));
+              },
+              icon: Icon(Icons.search)),
+          IconButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AddSupplierScreen()));
+                if (result == true) {
+                  setState(() {
+                    currentPage = 1;
+                  });
+                  _fetchSuppliers();
                 }
-              })),
+              },
+              icon: Icon(Icons.add))
+        ],
+      ),
+      body: ListView.builder(
+        controller: scrollController,
+        itemCount: cachedSupplierList.length + (isLoadingMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index < cachedSupplierList.length) {
+            final supplier = cachedSupplierList[index];
+            return ListTile(
+              title: Text(supplier.name),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Phone: ${supplier.phone}'),
+                ],
+              ),
+              leading: CircleAvatar(
+                backgroundColor: getRandomColor(),
+                child: Text(supplier.name[0]),
+              ),
+              trailing: Icon(Icons.info_outline),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                    EditSupplierScreen(supllier: supplier)
+                ));
+              },
+              onLongPress: () =>
+                  _showDeleteConfirmationDialog(context, supplier.id),
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -151,13 +190,13 @@ class _ListSupplierState extends State<ListSupplierScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Hủy'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop(); // Đóng hộp thoại
               },
             ),
             TextButton(
-              child: const Text('Xóa'),
+              child: const Text('Yes'),
               onPressed: () {
                 _deleteItem(itemId); // Gọi API xóa
                 Navigator.of(context).pop(); // Đóng hộp thoại
@@ -176,11 +215,14 @@ class _ListSupplierState extends State<ListSupplierScreen> {
       final response = await http.delete(url);
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Xóa thành công!')),
+          SnackBar(content: Text('Item deleted successfully!')),
         );
         setState(() {
           cachedSupplierList.removeWhere((supplier) => supplier.id == itemId);
-          supplierList = Future.value(cachedSupplierList);
+          if (cachedSupplierList.isEmpty && currentPage > 1) {
+            currentPage--;
+          }
+          _fetchSuppliers();
         });
       } else {
         final responseBody = json.decode(response.body); // Decode JSON
@@ -192,7 +234,7 @@ class _ListSupplierState extends State<ListSupplierScreen> {
     } catch (e) {
       print('Error deleting item: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+        SnackBar(content: Text('An error occurred: $e')),
       );
     }
   }
@@ -205,16 +247,16 @@ class SearchSupplierDelegate extends SearchDelegate {
 
   @override
   List<Widget>? buildActions(BuildContext context) => [
-        IconButton(
-            onPressed: () {
-              if (query.isEmpty) {
-                close(context, null);
-              } else {
-                query = '';
-              }
-            },
-            icon: Icon(Icons.clear))
-      ];
+    IconButton(
+        onPressed: () {
+          if (query.isEmpty) {
+            close(context, null);
+          } else {
+            query = '';
+          }
+        },
+        icon: Icon(Icons.clear))
+  ];
 
   @override
   Widget? buildLeading(BuildContext context) => IconButton(
@@ -223,33 +265,33 @@ class SearchSupplierDelegate extends SearchDelegate {
   @override
   Widget buildResults(BuildContext context) {
     return FutureBuilder<List<Supplier>>(
-      future: supplierList,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No suppliers found'));
-        } else {
-          final List<Supplier> results = snapshot.data!
-              .where((supplier) =>
-                  supplier.name.toLowerCase().contains(query.toLowerCase()))
-              .toList();
+        future: supplierList,
+        builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Center(child: Text('Error: ${snapshot.error}'));
+      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        return Center(child: Text('No suppliers found'));
+      } else{
+        final List<Supplier> results = snapshot.data!
+            .where((supplier) =>
+            supplier.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
 
-          return ListView.builder(
-            itemCount: results.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(results[index].name),
-                onTap: () {
-                  close(context, results[index]);
-                },
-              );
-            },
-          );
-        }
-      },
+        return ListView.builder(
+          itemCount: results.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(results[index].name),
+              onTap: () {
+                close(context, results[index]);
+              },
+            );
+          },
+        );
+      }
+        },
     );
   }
 
@@ -267,7 +309,7 @@ class SearchSupplierDelegate extends SearchDelegate {
         } else {
           final List<Supplier> suggestions = snapshot.data!
               .where((supplier) =>
-                  supplier.name.toLowerCase().contains(query.toLowerCase()))
+              supplier.name.toLowerCase().contains(query.toLowerCase()))
               .toList();
 
           return ListView.builder(

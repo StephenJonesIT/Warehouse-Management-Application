@@ -1,11 +1,14 @@
+import 'package:bai1/categories/list_category.dart';
+import 'package:bai1/products/add_product.dart';
 import 'package:bai1/suppliers/add_supplier.dart';
 import 'package:bai1/suppliers/list_supplier.dart';
+import 'package:bai1/warehouses/list_warehouse.dart';
 import 'package:flutter/material.dart';
 
 class SupplierScreen extends StatelessWidget {
   final List<Map<String, dynamic>> suppliers = [
     {'icon': Icons.receipt, 'title': 'Supplier List'},
-    {'icon': Icons.shopping_cart, 'title': 'Product'},
+    {'icon': Icons.add_box, 'title': 'Add Product'},
     {'icon': Icons.warehouse_outlined, 'title': 'Warehouse'},
     {'icon': Icons.category, 'title': 'Category'},
     {'icon': Icons.cabin, 'title': 'Settings'},
@@ -114,7 +117,29 @@ class SupplierScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => ListSupplierScreen()),
           );
+          break;
         }
+      case 1:
+      {
+        Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (context) => AddProductScreen()),
+        );
+      }
+      case 2:{
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context)=>ListWarehouseScreen()),
+        );
+        break;
+      }
+      case 3:{
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context)=>ListCategoryScreen()),
+        );
+        break;
+      }
     }
   }
 }
