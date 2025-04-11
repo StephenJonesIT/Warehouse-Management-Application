@@ -201,7 +201,7 @@ class _AddSupplierState extends State<AddSupplierScreen>{
 
   Future<void> _addSupplier() async {
     if (_formKey.currentState!.validate()) {
-      final url = Uri.parse('http://10.0.2.2:8810/api/supplier'); // Thay URL của bạn
+      final url = Uri.parse('https://manage-sale-microservice.onrender.com/api/supplier'); // Thay URL của bạn
       try {
         final response = await http.post(
           url,
@@ -221,7 +221,7 @@ class _AddSupplierState extends State<AddSupplierScreen>{
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Thêm nhà cung cấp thành công!')),
           );
-          Navigator.of(context).pop(); // Quay lại màn hình trước
+          Navigator.pop(context, true); // Quay lại màn hình trước
         } else {
           // Thêm thất bại
           final responseBody = json.decode(response.body);

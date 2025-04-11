@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ListWarehouseScreen extends StatefulWidget {
-  ListWarehouseScreen();
+  final bool isSelected;
+  ListWarehouseScreen({required this.isSelected});
   @override
   State<ListWarehouseScreen> createState() => _listWarehouseState();
 }
@@ -51,7 +52,7 @@ class _listWarehouseState extends State<ListWarehouseScreen> {
     });
 
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2:8810/api/warehouses?page=$currentPage&limit=$pageSize'));
+        'https://manage-sale-microservice.onrender.com/api/warehouses?page=$currentPage&limit=$pageSize'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -122,18 +123,23 @@ class _listWarehouseState extends State<ListWarehouseScreen> {
               subtitle: Text('${warehouse.location}'),
               leading: Icon(Icons.place),
               onTap: () async {
-                final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context)=> UpdateWarehouseScreen(
-                        warehouse: warehouse
-                    )
-                    )
-                );
-                if(result == true){
-                  setState(() {
-                    currentPage = 1;
-                  });
-                  _fetchWarehouses();
+                if (widget.isSelected){
+                  Navigator.pop(context,warehouse);
+                }else {
+                  final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) =>
+                          UpdateWarehouseScreen(
+                              warehouse: warehouse
+                          )
+                      )
+                  );
+                  if (result == true) {
+                    setState(() {
+                      currentPage = 1;
+                    });
+                    _fetchWarehouses();
+                  }
                 }
               },
               onLongPress: () {

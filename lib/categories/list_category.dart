@@ -6,7 +6,8 @@ import '../models/category_model.dart';
 import 'add_category.dart'; // Giả sử bạn có model Category
 
 class ListCategoryScreen extends StatefulWidget {
-  ListCategoryScreen();
+  final bool isSelected;
+  ListCategoryScreen({required this.isSelected});
 
   @override
   State<ListCategoryScreen> createState() => ListCategoryState();
@@ -46,7 +47,7 @@ class ListCategoryState extends State<ListCategoryScreen> {
     });
 
     final response = await http.get(Uri.parse(
-        'http://10.0.2.2:8810/api/categories?page=$currentPage&limit=$pageSize'));
+        'https://manage-sale-microservice.onrender.com/api/categories?page=$currentPage&limit=$pageSize'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -123,16 +124,20 @@ class ListCategoryState extends State<ListCategoryScreen> {
                 title: Text(category.name),
                 trailing: Icon(Icons.arrow_forward_ios_rounded),
                 onTap: () async {
-                  final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              UpdateCategoryScreen(category: category)));
-                  if (result == true) {
-                    setState(() {
-                      currentPage = 1;
-                    });
-                    _fetchCategories();
+                  if (widget.isSelected){
+                    Navigator.pop(context,category);
+                  }else{
+                    final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                UpdateCategoryScreen(category: category)));
+                    if (result == true) {
+                      setState(() {
+                        currentPage = 1;
+                      });
+                      _fetchCategories();
+                    }
                   }
                 },
                 onLongPress: () {

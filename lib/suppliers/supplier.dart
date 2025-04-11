@@ -11,7 +11,6 @@ class SupplierScreen extends StatelessWidget {
     {'icon': Icons.add_box, 'title': 'Add Product'},
     {'icon': Icons.warehouse_outlined, 'title': 'Warehouse'},
     {'icon': Icons.category, 'title': 'Category'},
-    {'icon': Icons.cabin, 'title': 'Settings'},
   ];
 
   void navigateToAddSupplierScreen(BuildContext context) {
@@ -115,7 +114,7 @@ class SupplierScreen extends StatelessWidget {
         {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ListSupplierScreen()),
+            MaterialPageRoute(builder: (context) => ListSupplierScreen(isSelected: false,)),
           );
           break;
         }
@@ -129,14 +128,14 @@ class SupplierScreen extends StatelessWidget {
       case 2:{
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context)=>ListWarehouseScreen()),
+          MaterialPageRoute(builder: (context)=>ListWarehouseScreen(isSelected: false,)),
         );
         break;
       }
       case 3:{
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context)=>ListCategoryScreen()),
+          MaterialPageRoute(builder: (context)=>ListCategoryScreen(isSelected: false,)),
         );
         break;
       }

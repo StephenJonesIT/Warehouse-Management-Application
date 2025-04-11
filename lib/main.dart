@@ -1,5 +1,4 @@
 import 'package:bai1/home.dart';
-import 'package:bai1/setting.dart';
 import 'package:bai1/suppliers/supplier.dart';
 import 'package:bai1/products/product.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Warehouse Management'),
+      home: const MyHomePage(title: 'Inventory Management'),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -42,7 +37,6 @@ class _MyHomePageState extends State<MyHomePage> {
     HomeScreen(),
     ProductScreen(),
     SupplierScreen(),
-    SettingsScreen(),
   ];
 
   @override
@@ -50,9 +44,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: _selectedIndex == 0
         ? AppBar(
-
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
+          backgroundColor: Colors.blueAccent,
+          title: Text(
+            style: TextStyle(color: Colors.white),
+            widget.title,
+          ),
+          foregroundColor: Colors.white,
+          actions: [
+            Icon(Icons.notification_important,),
+            SizedBox(width: 20,)
+          ],
         )
         : null,
         body: _widgetOptions.elementAt(_selectedIndex),
@@ -61,7 +62,6 @@ class _MyHomePageState extends State<MyHomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
             BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: ''),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-            BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Colors.blue[800],

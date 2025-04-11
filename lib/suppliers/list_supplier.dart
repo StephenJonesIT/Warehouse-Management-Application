@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ListSupplierScreen extends StatefulWidget {
-  ListSupplierScreen();
+  final bool isSelected;
+  ListSupplierScreen({required this.isSelected});
 
   @override
   State<ListSupplierScreen> createState() {
@@ -53,7 +54,7 @@ class _ListSupplierState extends State<ListSupplierScreen> {
     });
 
     final response = await http.get(Uri.parse(
-        "http://10.0.2.2:8810/api/suppliers?page=$currentPage&limit=$pageSize"));
+        "https://manage-sale-microservice.onrender.com/api/suppliers?page=$currentPage&limit=$pageSize"));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -146,9 +147,13 @@ class _ListSupplierState extends State<ListSupplierScreen> {
               ),
               trailing: Icon(Icons.info_outline),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                    EditSupplierScreen(supllier: supplier)
-                ));
+                if (widget.isSelected){
+                  Navigator.pop(context, supplier);
+                }else{
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                      EditSupplierScreen(supllier: supplier)
+                  ));
+                }
               },
               onLongPress: () =>
                   _showDeleteConfirmationDialog(context, supplier.id),
